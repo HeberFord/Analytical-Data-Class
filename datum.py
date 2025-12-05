@@ -89,10 +89,128 @@ class datum:
     def __add__(self, other):
         if self.units != other.units:
             raise ValueError("Units do not match, cannot perform addition")
+        if self.analyte != other.analyte:
+            analyte = "Unk"
         val = self.value + other.value
         err = math.sqrt(self.error**2 + other.error**2)
-        result = datum(val, err, self.units, self.analyte) #Maybe preclude analyte?
+        result = datum(val, err, self.units, analyte) #Maybe preclude analyte to force people to define it later?
         return result
+    
+    def __sub__(self, other):
+        if self.units != other.units:
+            raise ValueError("Units do not match, cannot perform addition")
+        if self.analyte != other.analyte:
+            analyte = "Unk"
+        val = self.value - other.value
+        err = math.sqrt(self.error**2 + other.error**2)
+        result = datum(val, err, self.units, analyte) #Maybe preclude analyte to force people to define it later?
+        return result
+    
+    def __mul__(self, other):
+        if self.units != other.units:
+            units = f"({self.units}*{other.units})"
+        else:
+            units = f"({self.units}^2)"
+        if self.analyte != other.analyte:
+            analyte = "Unk"
+        val = self.value * other.value
+        err = val * math.sqrt((self.error/self.value)**2 + (other.error/self.value)**2)
+        result = datum(val, err, units, analyte)
+        return result
+    
+    def __truediv__(self, other):
+        if self.units != other.units:
+            units = f"({self.units}/{other.units})"
+        else:
+            units = ""
+        if self.analyte != other.analyte:
+            analyte = "Unk"
+        val = self.value / other.value
+        err = val * math.sqrt((self.error/self.value)**2 + (other.error/self.value)**2)
+        result = datum(val, err, units, analyte)
+        return result
+    
+    def __pow__(self, other): #self ** other
+        val = self.value ** other.value
+        err = abs(val * other.value * (self.error/self.value))
+        units = f"({self.units}^{other.units})"
+        analyte = "unk"
+        result = datum(val, err, units, analyte)
+        return result
+    
+    def __rpow__(self, other): #other ** self
+        val = other.value ** self.value
+        err = abs(val * self.value * (other.error/other.value))
+        units = f"({other.units}^{other.units})"
+        analyte = "unk"
+        result = datum(val, err, units, analyte)
+        return result
+    
+    def __neg__(self):
+        val = -self.value
+        err = self.error
+        units = self.units
+        analyte = self.analyte
+        result = datum(val, err, units, analyte)
+        return result
+    
+    def __abs__(self):
+        val = abs(self.value)
+        err = self.error
+        units = self.units
+        analyte = self.analyte
+        result = datum(val, err, units, analyte)
+        return result
+
+    def __round__(self):
+        val = round(self.value, self.errorder)
+        err = round(self.error, self.errorder)
+        units = self.units
+        analyte = self.analyte
+        result = datum(val, err, units, analyte)
+        return result
+
+    def log(self):
+        val = math.log10(self.value)
+        err = abs(0.434 * (self.error/self.value))
+        units = f"Log({self.units})"
+        analyte = self.analyte
+        result = datum(val, err, units, analyte)
+        return result
+    
+    def ln(self):
+        val = math.log(self.value)
+        err = abs((self.error/self.value))
+        units = f"Ln({self.units})"
+        analyte = self.analyte
+        result = datum(val, err, units, analyte)
+        return result
+    
+    def exp(self):
+        value = math.exp(self.value)
+        err = math.sqrt(math.e ** (2*self.value) * (self.error **2))
+        units = f"Exp({self.units})"
+        analyte = self.analyte
+        result = datum(value, err, units, analyte)
+        return result
+
+    def __lt__(self, other):
+        return self.value < other.value
+    
+    def __gt__(self, other):
+        return self.value > other.value    
+
+    def __le__(self, other):
+        return self.value <= other.value
+    
+    def __ge__(self, other):
+        return self.value >= other.value
+    
+    def __eq__(self, other):
+        return self.value == other.value
+    
+    def __ne__(self, other):
+        return self.value != other.value
 
 
 if __name__ == "__main__":
