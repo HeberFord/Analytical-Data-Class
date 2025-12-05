@@ -20,33 +20,22 @@ def StatError(error, tol = 0.34):
     mod_err = ""
     err_ord = 0
     for char in str_err :
-        #print(f"Current Char: {char}")
-        #print(f"Current Vals: {Vals}")
         if char == "0" and Vals == 0 or char == "." and Vals == 0:
             mod_err += char
-            #print(mod_err)
             continue
         else:
             while Vals < 2:
                 if char != '0' and char != '.' and char != '1' and char != '2':
                     mod_err += char
                     Vals += 1
-                    #print(mod_err)
-                    #print(err_ord)
-                    #print(f"{Vals} after adding 1")
                     break
                 else:
                     mod_err += "0"
                     Vals += tol
                     err_ord += 1
-                    #print(mod_err)
-                    #print(err_ord)
-                    #print(f"{Vals} after adding tol")
                     break
     sig = float(mod_err)
-    #print(sig)
     err_ord += int(abs(math.log10(sig)// 1))
-    #print(err_ord)
     return err_ord
 
 def Errordet(error):
@@ -80,7 +69,7 @@ def rd(value, order):
         rdv = round(value, abs(order))
         return rdv
     
-def sigfig(value): #Two issues rn, one if first sig fig is before decimals, and second is after, 
+def sigfig(value):
     str_val = str(value)
     sig = 0
     dec = -1
@@ -125,7 +114,7 @@ class datum:
         Docstring for ___repr__
         """
         s = ""
-        s += f"{rd(self.value, self.errorder)} +/- {rd(self.error, self.errorder)} {self.units} ({self.analyte}) with ({self.sigfig}) significant figures"
+        s += f"{rd(self.value, self.errorder)} +/- {rd(self.error, self.errorder)} {self.units} ({self.analyte}) with {self.sigfig} significant figures"
         return s
 
     def __add__(self, other):
@@ -137,7 +126,7 @@ class datum:
             analyte = self.analyte
         val = self.value + other.value
         err = math.sqrt(self.error**2 + other.error**2)
-        result = datum(val, err, self.units, analyte) #Maybe preclude analyte to force people to define it later?
+        result = datum(val, err, self.units, analyte) 
         if result.decsig > self.decsig:
             dif = result.decsig - self.decsig
             (result.sigfig, result.decsig) = (result.sigfig - dif, self.decsig)
@@ -152,7 +141,10 @@ class datum:
             analyte = self.analyte
         val = self.value - other.value
         err = math.sqrt(self.error**2 + other.error**2)
-        result = datum(val, err, self.units, analyte) #Maybe preclude analyte to force people to define it later?
+        result = datum(val, err, self.units, analyte) 
+        if result.decsig > self.decsig:
+            dif = result.decsig - self.decsig
+            (result.sigfig, result.decsig) = (result.sigfig - dif, self.decsig)
         return result
     
     def __mul__(self, other):
@@ -167,6 +159,8 @@ class datum:
         val = self.value * other.value
         err = val * math.sqrt((self.error/self.value)**2 + (other.error/self.value)**2)
         result = datum(val, err, units, analyte)
+        if result.sigfig > self.sigfig:
+            (result.sigfig, result.decsig) = (self.sigfig, self.decsig) #Pre and post decsig only post affected by machine epsilon so just update based on total saved
         return result
     
     def __truediv__(self, other):
@@ -269,13 +263,15 @@ class datum:
 
 
 if __name__ == "__main__":
-    d = datum(12.1167, 0.515, "m", "Length")
+    d = datum(52.1117, 0.519, "m", "Length")
     print(d)
     print(sigfig(d.value))
-    d2 = datum(10.1234, 0.04333, "m", "Length")
+    d2 = datum(50.1214, 0.04333, "m", "Length")
     print(d2)
+    print(sigfig(d2.value))
     d3 = d + d2
     print(d3)
+    print(sigfig(d3.value))
     # d4 = d * d2
     # print(d4)
     # d5 = d / d2
