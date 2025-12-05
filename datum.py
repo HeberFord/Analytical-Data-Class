@@ -2,7 +2,7 @@
 
 import math
 
-def StatError(error, tol = 0.51):
+def StatError(error, tol = 0.34):
     """
     Docstring for StatError
     
@@ -13,23 +13,35 @@ def StatError(error, tol = 0.51):
     str_err = str(error)
     Vals = 0
     mod_err = ""
+    err_ord = 0
     for char in str_err :
-        if char == '0' and char == '.' and Vals == 0:
+        print(f"Current Char: {char}")
+        print(f"Current Vals: {Vals}")
+        if char == "0" and Vals == 0 or char == "." and Vals == 0:
             mod_err += char
+            print(mod_err)
             continue
         else:
             while Vals < 2:
-                if char != '0' and char != '.' and char != "1" and char != "2":
+                if char != '0' and char != '.' and char != '1' and char != '2':
                     mod_err += char
                     Vals += 1
+                    #print(mod_err)
+                    #print(err_ord)
+                    #print(f"{Vals} after adding 1")
                     break
                 else:
-                    mod_err += char
+                    mod_err += "0"
                     Vals += tol
+                    err_ord += 1
+                    #print(mod_err)
+                    #print(err_ord)
+                    #print(f"{Vals} after adding tol")
                     break
     sig = float(mod_err)
-    err_ord = int(abs(math.log10(sig)// 1))
-    
+    #print(sig)
+    err_ord += int(abs(math.log10(sig)// 1))
+    #print(err_ord)
     return err_ord
                         
 def Errorsig(error):
@@ -91,6 +103,8 @@ class datum:
             raise ValueError("Units do not match, cannot perform addition")
         if self.analyte != other.analyte:
             analyte = "Unk"
+        else:
+            analyte = self.analyte
         val = self.value + other.value
         err = math.sqrt(self.error**2 + other.error**2)
         result = datum(val, err, self.units, analyte) #Maybe preclude analyte to force people to define it later?
@@ -101,6 +115,8 @@ class datum:
             raise ValueError("Units do not match, cannot perform addition")
         if self.analyte != other.analyte:
             analyte = "Unk"
+        else:
+            analyte = self.analyte
         val = self.value - other.value
         err = math.sqrt(self.error**2 + other.error**2)
         result = datum(val, err, self.units, analyte) #Maybe preclude analyte to force people to define it later?
@@ -113,6 +129,8 @@ class datum:
             units = f"({self.units}^2)"
         if self.analyte != other.analyte:
             analyte = "Unk"
+        else:
+            analyte = self.analyte
         val = self.value * other.value
         err = val * math.sqrt((self.error/self.value)**2 + (other.error/self.value)**2)
         result = datum(val, err, units, analyte)
@@ -125,6 +143,8 @@ class datum:
             units = ""
         if self.analyte != other.analyte:
             analyte = "Unk"
+        else:
+            analyte = self.analyte
         val = self.value / other.value
         err = val * math.sqrt((self.error/self.value)**2 + (other.error/self.value)**2)
         result = datum(val, err, units, analyte)
@@ -214,5 +234,13 @@ class datum:
 
 
 if __name__ == "__main__":
-    d = datum(12.54667, 0.23445, "m", "Length")
+    d = datum(12.1167, 0.515, "m", "Length")
     print(d)
+    # d2 = datum(10.1234, 0.04333, "m", "Length")
+    # print(d2)
+    # d3 = d + d2
+    # print(d3)
+    # d4 = d * d2
+    # print(d4)
+    # d5 = d / d2
+    # print(d5)
