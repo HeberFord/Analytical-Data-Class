@@ -130,6 +130,8 @@ class datum:
         return s
 
     def __add__(self, other):
+        #Identify unit compatibility, analyte, then perform operation prop err
+        #Last step is determining sig figs
         if self.units != other.units:
             raise ValueError("Units do not match, cannot perform addition")
         if self.analyte != other.analyte:
@@ -143,6 +145,8 @@ class datum:
         return result
     
     def __sub__(self, other):
+        #Identify unit compatibility, analyte, then perform operation prop err
+        #Last step is determining sig figs
         if self.units != other.units:
             raise ValueError("Units do not match, cannot perform addition")
         if self.analyte != other.analyte:
@@ -156,6 +160,8 @@ class datum:
         return result
     
     def __mul__(self, other):
+        #Identify unit compatibility, analyte, then perform operation prop err
+        #Last step is determining sig figs
         if self.units != other.units:
             units = f"({self.units}*{other.units})"
         else:
@@ -175,6 +181,8 @@ class datum:
         return result
     
     def __truediv__(self, other):
+        #Identify unit compatibility, analyte, then perform operation prop err
+        #Last step is determining sig figs
         if self.units != other.units:
             units = f"({self.units}/{other.units})"
         else:
@@ -194,6 +202,7 @@ class datum:
         return result
     
     def __pow__(self, other): #self ** other
+        #Identify unit compatibility, analyte, then perform operation prop err
         val = self.value ** other.value
         err = abs(val * other.value * (self.error/self.value))
         units = f"({self.units}^{other.units})"
@@ -202,6 +211,7 @@ class datum:
         return result
     
     def __rpow__(self, other): #other ** self
+        #Identify unit compatibility, analyte, then perform operation prop err
         val = other.value ** self.value
         err = abs(val * self.value * (other.error/other.value))
         units = f"({other.units}^{other.units})"
@@ -210,6 +220,7 @@ class datum:
         return result
     
     def __neg__(self):
+        #Identify unit compatibility, analyte, then perform operation prop err
         val = -self.value
         err = self.error
         units = self.units
@@ -218,6 +229,7 @@ class datum:
         return result
     
     def __abs__(self):
+        #Identify unit compatibility, analyte, then perform operation prop err
         val = abs(self.value)
         err = self.error
         units = self.units
@@ -226,6 +238,7 @@ class datum:
         return result
 
     def __round__(self):
+        #Identify unit compatibility, analyte, then perform operation prop err
         val = round(self.value, self.errorder)
         err = round(self.error, self.errorder)
         units = self.units
@@ -234,6 +247,7 @@ class datum:
         return result
 
     def log(self):
+        #Identify unit compatibility, analyte, then perform operation prop err
         val = math.log10(self.value)
         err = abs(0.434 * (self.error/self.value))
         units = f"Log({self.units})"
@@ -242,6 +256,7 @@ class datum:
         return result
     
     def ln(self):
+        #Identify unit compatibility, analyte, then perform operation prop err
         val = math.log(self.value)
         err = abs((self.error/self.value))
         units = f"Ln({self.units})"
@@ -250,6 +265,7 @@ class datum:
         return result
     
     def exp(self):
+        #Identify unit compatibility, analyte, then perform operation prop err
         value = math.exp(self.value)
         err = math.sqrt(math.e ** (2*self.value) * (self.error **2))
         units = f"Exp({self.units})"
@@ -280,15 +296,16 @@ class datum:
 
 if __name__ == "__main__":
     d = datum(5.1117, 0.519, "m", "Length")
-    print(d)
-    print(d.decsig+d.intsig)
+    # print(d)
+    # print(d.decsig+d.intsig)
     d2 = datum(5.1214, 0.04333, "m", "Length")
-    print(d2)
-    print(d2.decsig+d2.intsig)
-    d3 = d * d2
-    print(d3)
-    print(d3.intsig)
+    # print(d2)
+    # print(d2.decsig+d2.intsig)
+    # d3 = d + d2
+    # print(d3)
+    # print(d3.intsig)
     # d4 = d * d2
     # print(d4)
-    # d5 = d / d2
-    # print(d5)
+    d5 = d / d2
+    print(d5)
+    print(d5.errorder)
