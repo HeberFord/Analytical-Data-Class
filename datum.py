@@ -17,25 +17,28 @@ def StatError(error, tol = 0.34):
                 for N insignificant digits max. Automatically set to 0.34 for \n
                 3 max insignificant digits before rounding
     """
-    str_err = str(error)
-    Vals = 0
+    if error != str: #If error is not a string convert it to one
+        str_err = str(error) 
+    else:
+        str_err = error
+    Vals = 0  #Initialize variables to add to later
     mod_err = ""
     err_ord = 0
-    for char in str_err :
+    for char in str_err : #Filter through each number in the value
         if char == "0" and Vals == 0 or char == "." and Vals == 0:
             mod_err += char
-            continue
+            continue #If 0 or . and have not yet hit a real digit just add and skip
         else:
-            while Vals < 2:
+            while Vals < 2: #If less than two sigfigs have been identified 
                 if char != '0' and char != '.' and char != '1' and char != '2':
                     mod_err += char
                     Vals += 1
-                    break
+                    break #For significant digits add the character and count
                 else:
                     mod_err += "0"
                     Vals += tol
                     err_ord += 1
-                    break
+                    break # for insignificant digits add them and count partial
     sig = float(mod_err)
     err_ord += int(abs(math.log10(sig)// 1))
     return err_ord
@@ -48,11 +51,11 @@ def Errordet(error):
     :float value: The Actual Measurment value \n
     :float error: The actual error in measurment \n
     """
-    if error < 0:
+    if "-" in error: #If negative doesn't work
         return ValueError("Error cannot be a negative value")
-    if error == 0:
+    if error == "0": #If zero assume absolute precision
         return math.inf
-    if error > 0:
+    else: #else assume number and then just run into function 
         sig = StatError(error)
         return sig + 1
 
@@ -65,59 +68,65 @@ def rd(value, order):
     :Float value: Value desired to be rounded \n
     :Float order: Order of error in the value to be rounded \n
     """
-    if order == math.inf:
+    if order == math.inf: #if ind accuracy return number
         return value
     else:
-        rdv = round(value, abs(order))
+        rdv = round(value, abs(order)) #Otherwise just round like normal
         return rdv
     
 def sigfig(value):
     """
-    sigfig takes a text input
-    
-    :string value: Description
+    sigfig takes a string input of the exact value entered strips spaces \n
+    and leading zeros in order to count the number of significant digits. \n
+     
+    :string value: string or float of value to calculate sig figs of
     """
-    if value != str:
+    if value != str: #Converts value to string if not
         str_val = str(value)
     else: str_val = value
     
-    if "." in str_val:
+    if "." in str_val: #Splitting into before and after decimal if it exists
         integ, decim = str_val.split(".")
     else:
         integ, decim = str_val, ""
-    clean_int = integ.lstrip("0")
-    int_sig = len(clean_int)
+    clean_int = integ.lstrip("0") #Strip leading zeroes
+    int_sig = len(clean_int) #Count sig figs
     dec_clean = decim.lstrip("0")
     dec_sig = len(dec_clean)
     return (int_sig, dec_sig)
 
 class datum:
     """
-    Docstring for datum
+    The datum class is used for experimental data tracking and error propogation \n
+    Refer to readme for more info
     """
     def __init__(self, value, Error, Units = "SI", Analyte = "Unk"):
         """
         Docstring for __init___ \n
-        :param value: Description \n
-        :param Error: Description \n
-        :param Units: Description \n
-        :param Analyte: Description \n
+        :float value: true value of experimental measurment \n
+        :param Error: error in measured value \n
+        :param Units: units of measured value \n
+        :param Analyte: analyte of interest \n
         """
-        self.raw_value = str(value) #Actual value of the variable of interest
-        self.raw_error = str(Error)
-        self.value = mp.mpf(value)
+        self.raw_value = str(value) #Convert immediately to str
+        self.raw_error = str(Error) #This preserves all info given w/o rding
+        self.value = mp.mpf(value) #High precission storage for general prob
         self.error = mp.mpf(Error)
         self.units = Units
         self.analyte = Analyte
-        self.errorder = Errordet(self.error)
-        (self.sigfig, self.decsig) = sigfig(self.raw_value)
+        self.errorder = Errordet(self.raw_error) #Determine order to round  
+        (self.intsig, self.decsig) = sigfig(self.raw_value)
     
     def __repr__(self):
         """
         Docstring for ___repr__
         """
         s = ""
-        s += f"{rd(self.value, self.errorder)} +/- {rd(self.error, self.errorder)} {self.units} ({self.analyte}) with {self.sigfig} significant figures"
+        s += f"{rd(self.value, self.errorder)} " 
+        s += f"+/- {rd(self.error, self.errorder)} "
+        s += f"{self.units} "
+        s += f"({self.analyte}) "
+        s += f"with {self.intsig + self.decsig} significant figures"
         return s
 
     def __add__(self, other):
@@ -130,9 +139,7 @@ class datum:
         val = self.value + other.value
         err = math.sqrt(self.error**2 + other.error**2)
         result = datum(val, err, self.units, analyte) 
-        if result.decsig > self.decsig:
-            dif = result.decsig - self.decsig
-            (result.sigfig, result.decsig) = (result.sigfig - dif, self.decsig)
+        result.decsig = min(self.decsig, other.decsig)
         return result
     
     def __sub__(self, other):
@@ -145,9 +152,7 @@ class datum:
         val = self.value - other.value
         err = math.sqrt(self.error**2 + other.error**2)
         result = datum(val, err, self.units, analyte) 
-        if result.decsig > self.decsig:
-            dif = result.decsig - self.decsig
-            (result.sigfig, result.decsig) = (result.sigfig - dif, self.decsig)
+        result.decsig = min(self.decsig, other.decsig)
         return result
     
     def __mul__(self, other):
@@ -162,8 +167,11 @@ class datum:
         val = self.value * other.value
         err = val * math.sqrt((self.error/self.value)**2 + (other.error/self.value)**2)
         result = datum(val, err, units, analyte)
-        if result.sigfig > self.sigfig:
-            (result.sigfig, result.decsig) = (self.sigfig, self.decsig) #Pre and post decsig only post affected by machine epsilon so just update based on total saved
+        totsig = min(self.intsig + self.decsig, other.intsig + other.decsig)
+        result.decsig = totsig - result.intsig
+        if result.decsig < 0:
+            result.intsig -= result.decsig
+            result.decsig = 0
         return result
     
     def __truediv__(self, other):
@@ -178,6 +186,11 @@ class datum:
         val = self.value / other.value
         err = val * math.sqrt((self.error/self.value)**2 + (other.error/self.value)**2)
         result = datum(val, err, units, analyte)
+        totsig = min(self.intsig + self.decsig, other.intsig + other.decsig)
+        result.decsig = totsig - result.intsig
+        if result.decsig < 0:
+            result.intsig -= result.decsig
+            result.decsig = 0
         return result
     
     def __pow__(self, other): #self ** other
@@ -266,15 +279,15 @@ class datum:
 
 
 if __name__ == "__main__":
-    d = datum(52.1117, 0.519, "m", "Length")
+    d = datum(5.1117, 0.519, "m", "Length")
     print(d)
-    print(sigfig(d.value))
-    d2 = datum(50.1214, 0.04333, "m", "Length")
+    print(d.decsig+d.intsig)
+    d2 = datum(5.1214, 0.04333, "m", "Length")
     print(d2)
-    print(sigfig(d2.value))
-    d3 = d + d2
+    print(d2.decsig+d2.intsig)
+    d3 = d * d2
     print(d3)
-    print(sigfig(d3.value))
+    print(d3.intsig)
     # d4 = d * d2
     # print(d4)
     # d5 = d / d2
