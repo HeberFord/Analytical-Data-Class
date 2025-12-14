@@ -1,7 +1,9 @@
 
 
 import math
+from mpmath import mp #Increases precision to prevent machine epsilon issues with sig figs
 
+mp.dps = 100
 def StatError(error, tol = 0.34):
     """
     StateError: Function that determines the order of magnitude of the error \n
@@ -70,25 +72,24 @@ def rd(value, order):
         return rdv
     
 def sigfig(value):
-    str_val = str(value)
-    sig = 0
-    dec = -1
-    for char in str_val :
-        if char == "0" and sig == 0 or char == "." and sig == 0:
-            if char == ".":
-                dec += 1
-            continue
-        elif char != ".":
-            if dec != -1:
-                dec += 1
-            sig += 1
-            continue
-        elif char == ".":
-            dec += 1
-            continue
-        else:
-            continue
-    return (sig, dec)
+    """
+    sigfig takes a text input
+    
+    :string value: Description
+    """
+    if value != str:
+        str_val = str(value)
+    else: str_val = value
+    
+    if "." in str_val:
+        integ, decim = str_val.split(".")
+    else:
+        integ, decim = str_val, ""
+    clean_int = integ.lstrip("0")
+    int_sig = len(clean_int)
+    dec_clean = decim.lstrip("0")
+    dec_sig = len(dec_clean)
+    return (int_sig, dec_sig)
 
 class datum:
     """
@@ -102,12 +103,14 @@ class datum:
         :param Units: Description \n
         :param Analyte: Description \n
         """
-        self.value = value #Actual value of the variable of interest
-        self.error = Error
+        self.raw_value = str(value) #Actual value of the variable of interest
+        self.raw_error = str(Error)
+        self.value = mp.mpf(value)
+        self.error = mp.mpf(Error)
         self.units = Units
         self.analyte = Analyte
         self.errorder = Errordet(self.error)
-        (self.sigfig, self.decsig) = sigfig(self.value)
+        (self.sigfig, self.decsig) = sigfig(self.raw_value)
     
     def __repr__(self):
         """
