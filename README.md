@@ -3,3 +3,9 @@ Heber Ford
 Final Project for Math 260 Class at Duke University
 
 In chemistry, working with data requires a variety of transformations and parallel tracking of information over the process. One such example that is relatively simple is the propagation of error in collected data. Propagated error calculations consider the starting error listed due to instrumental quality or manufacturer purity. Then, through every operation, from a transfer to a dilution, we propagate error according to the following equations. When adding two solutions or amounts together, we made use of equation two listed here, where F represents your actual equation and x/y/z represent the respective pieces of data collected  . When values are divided or multiplied, the resulting error is calculated as shown in this equation.  Using these equations, we can propagate all errors through to the final error in reported values. These are just the basic examples, but rules for exponents, logs, and all sorts of operations exist in order to propagate error based on a master equation of partial derivatives. Encoding this into a class for calculations would be beneficial for a chemist. However, the propagation of error is not the only major factor to keep track of: stoichiometry is also incredibly important. Whether changing from mL to L, Joules to eV, or ounces to grams, we often have to transfer the dimensions of our data through a difficult-to-keep-track-of process. Creating automatic functions to adjust data values as necessary to perform complementary operations would be incredibly useful. 
+
+
+
+
+**TODO**
+1. 
